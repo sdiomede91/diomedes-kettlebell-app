@@ -1,56 +1,67 @@
-# Welcome to your Expo app 👋
+# Diomedes
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A daily kettlebell app. **Move in silence.**
 
-## Get started
+Diomedes carried the Greek army while Achilles sulked, wounded two gods, and sailed home without drama. Almost nobody remembers him. This app is for training the same way: consistent, disciplined, without an audience.
 
-1. Install dependencies
+## What it does
 
-   ```bash
-   npm install
-   ```
+- **Today:** a weekly rotation (Upper / Lower / Full / Mobility / Rest) picks the day's session. **Flex** switches today to a different focus without changing the rotation.
+- **Generated sessions:** warm-up → EMOM strength → interval conditioning → AMRAP finisher → cool-down, sized to 20, 30 or 45 minutes. The same day always gives the same workout; **Reshuffle** gives a new one.
+- **Session player:** countdown ring, movement video, next-up line, and 3-2-1 beeps, phase gong and haptics. A "switch sides" cue sounds halfway through single-arm intervals. The screen stays awake, and the timer stays correct if you lock the phone.
+- **Catalog:** 39 kettlebell movements with cues, common mistakes, tags and a video slot for each.
+- **Log:** a private streak (scheduled rest days don't break it), a month calendar, session history, and the last and best bell for each movement.
+- **Settings:** rotation editor, session length, movement level cap, your bells (kg/lb), sound and haptics, a daily reminder showing the creed, and JSON export/import.
+- **No account, no cloud, no feed.** Everything stays on the device.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npm start          # scan the QR code with Expo Go on your phone
+npm run web        # or run it in a browser
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Checks:
 
-### Other setup steps
+```bash
+npm test           # engine unit tests (rotation, generator, timer, streak)
+npm run typecheck
+npm run lint
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Adding movement videos
 
-## Learn more
+Every exercise shows a "Film coming" placeholder until it has a video.
 
-To learn more about developing your project with Expo, look at the following resources:
+1. Export the clip as `assets/videos/<exercise-id>.mp4`. The ids are in `src/data/exercises.ts`, e.g. `two-hand-swing`, `turkish-get-up`. Short, square-ish or 16:10 loops of 3–8 seconds with no audio work best.
+2. Register it in `src/data/videos.ts`:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+   ```ts
+   'two-hand-swing': require('@/assets/videos/two-hand-swing.mp4'),
+   ```
 
-## Join the community
+   For hosted files, use a URL instead: `'snatch': 'https://…/snatch.mp4'`.
 
-Join our community of developers creating universal apps.
+The catalog header counts how many movements are filmed.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Where things live
+
+| Path | What |
+| --- | --- |
+| `src/app/` | Screens (Expo Router). `(tabs)/` holds Today, Catalog, Log and Settings; `session.tsx` is the player; `complete.tsx` is logging |
+| `src/data/exercises.ts` | Exercise catalog — edit cues and add movements here |
+| `src/data/creeds.ts` | Daily creed lines |
+| `src/engine/` | Pure logic: rotation, workout generator, timer state machine, streak |
+| `src/store/` | Persisted on-device state (zustand + AsyncStorage) |
+| `src/theme.ts` | Palette (navy / steel blue / parchment) and fonts (Cinzel + Inter) |
+
+## Shipping to the stores
+
+Reminders and audio work in Expo Go. For TestFlight or Play Store builds, use EAS:
+
+```bash
+npx eas-cli@latest build --platform ios
+```
+
+Change `ios.bundleIdentifier` / `android.package` in `app.json` (currently `com.diomedes.app`) to an id you own first.
