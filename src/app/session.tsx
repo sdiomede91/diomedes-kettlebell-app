@@ -23,6 +23,7 @@ import {
   type Phase,
   type TimerState,
 } from '@/engine/timer';
+import { shortLoad } from '@/engine/config';
 import { useCues } from '@/lib/cues';
 import { useActive, useStore } from '@/store';
 import { Font, Radius, Space, usePalette } from '@/theme';
@@ -61,6 +62,7 @@ function Player() {
   const workout = useActive((s) => s.workout)!;
   const finish = useActive((s) => s.finish);
   const settings = useStore((s) => s.settings);
+  const unit = settings.unit;
   const cue = useCues({ sound: settings.sound, haptics: settings.haptics });
 
   const phases = useMemo(() => buildTimeline(workout, UNILATERAL), [workout]);
@@ -157,6 +159,7 @@ function Player() {
             {phase.exerciseIds.map((id, i) => (
               <T key={id} variant="heading">
                 {workout.blocks[phase.blockIndex].exercises[i].reps} · {EXERCISE_BY_ID[id].name}
+                {workout.blocks[phase.blockIndex].exercises[i].load ? ` · ${shortLoad(workout.blocks[phase.blockIndex].exercises[i].load!, unit)}` : ''}
               </T>
             ))}
           </View>
@@ -166,10 +169,15 @@ function Player() {
             <T variant="title" style={{ textAlign: 'center' }}>
               {ex?.name ?? ''}
             </T>
-            {phase.kind === 'work' && (phase.reps || phase.switchSides) && (
+            {phase.kind === 'work' && (phase.reps || phase.switchSides || phase.load) && (
               <T variant="muted">
-                {phase.reps ? `${phase.reps}${/\d$/.test(phase.reps) ? ' reps' : ''}` : ''}
-                {phase.switchSides ? `${phase.reps ? ' · ' : ''}switch sides at the beep` : ''}
+                {[
+                  phase.reps ? `${phase.reps}${/\d$/.test(phase.reps) ? ' reps' : ''}` : '',
+                  phase.load ? shortLoad(phase.load, unit) : '',
+                  phase.switchSides ? 'switch sides at the beep' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </T>
             )}
           </View>
@@ -189,6 +197,7 @@ function Player() {
           <T variant="muted" style={{ textAlign: 'center' }}>
             Next: {EXERCISE_BY_ID[upNext.exerciseIds[0]]?.name}
             {upNext.reps ? ` · ${upNext.reps}` : ''}
+            {upNext.load ? ` · ${shortLoad(upNext.load, unit)}` : ''}
           </T>
         )}
 

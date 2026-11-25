@@ -6,6 +6,7 @@
  * so the timer stays correct even if the app is backgrounded: on return,
  * `advance(state, now)` fast-forwards through any phases that elapsed.
  */
+import type { Load } from './config';
 import type { Workout } from './types';
 
 export type PhaseKind = 'ready' | 'work' | 'rest';
@@ -20,6 +21,7 @@ export type Phase = {
   totalRounds: number;
   exerciseIds: string[];
   reps?: string;
+  load?: Load;
   /** Unilateral interval work: cue to switch sides at the halfway mark. */
   switchSides?: boolean;
   label: string;
@@ -65,6 +67,7 @@ export function buildTimeline(workout: Workout, unilateralIds: Set<string> = new
           totalRounds: b.rounds,
           exerciseIds: [ex.exerciseId],
           reps: ex.reps,
+          load: ex.load,
           label: `Minute ${m + 1} of ${b.rounds}`,
         });
       }
@@ -82,6 +85,7 @@ export function buildTimeline(workout: Workout, unilateralIds: Set<string> = new
           totalRounds: b.rounds,
           exerciseIds: [ex.exerciseId],
           reps: ex.reps,
+          load: ex.load,
           switchSides: unilateralIds.has(ex.exerciseId) && b.format === 'INTERVAL',
           label: b.rounds > 1 ? `Round ${r + 1} of ${b.rounds}` : `${i + 1} of ${b.exercises.length}`,
         });

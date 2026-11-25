@@ -7,6 +7,7 @@ import { EXERCISE_BY_ID } from '@/data/exercises';
 import { fromDateKey, todayKey, toDateKey } from '@/engine/date';
 import { currentStreak, longestStreak } from '@/engine/streak';
 import { DAY_LABEL } from '@/engine/types';
+import { convert, roundWeight } from '@/engine/config';
 import { useStore, type SessionLog } from '@/store';
 import { dayColor, Font, Radius, Space, usePalette } from '@/theme';
 
@@ -28,12 +29,13 @@ export default function Log() {
     for (const s of sessions)
       for (const e of s.entries) {
         if (e.weight === undefined) continue;
+        const w = roundWeight(convert(e.weight, e.unit ?? unit, unit));
         const cur = m.get(e.exerciseId);
-        if (!cur) m.set(e.exerciseId, { max: e.weight, last: e.weight, count: 1 });
-        else m.set(e.exerciseId, { ...cur, max: Math.max(cur.max, e.weight), count: cur.count + 1 });
+        if (!cur) m.set(e.exerciseId, { max: w, last: w, count: 1 });
+        else m.set(e.exerciseId, { ...cur, max: Math.max(cur.max, w), count: cur.count + 1 });
       }
     return [...m.entries()].sort((a, b) => b[1].count - a[1].count).slice(0, 8);
-  }, [sessions]);
+  }, [sessions, unit]);
 
   return (
     <Screen>
@@ -201,7 +203,7 @@ function SessionRow({ s }: { s: SessionLog }) {
               <Row key={e.exerciseId} style={{ justifyContent: 'space-between' }}>
                 <T variant="muted">{EXERCISE_BY_ID[e.exerciseId]?.name}</T>
                 <T variant="muted">
-                  {e.weight !== undefined ? `${e.weight} ${unit}` : 'BW'}
+                  {e.weight !== undefined ? `${roundWeight(convert(e.weight, e.unit ?? unit, unit))} ${unit}` : 'BW'}
                   {e.reps ? ` × ${e.reps}` : ''}
                 </T>
               </Row>

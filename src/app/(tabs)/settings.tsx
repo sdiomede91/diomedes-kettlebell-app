@@ -8,14 +8,12 @@ import { exportBackup, importBackup } from '@/lib/backup';
 import { syncReminder } from '@/lib/reminder';
 import { DEFAULT_ROTATION, WEEKDAY_SHORT } from '@/engine/rotation';
 import { DAY_SHORT, type DayType, type Rotation, type SessionLength } from '@/engine/types';
-import { useStore, type WeightUnit } from '@/store';
+import { BELLS, type WeightUnit } from '@/data/bells';
+import { convert } from '@/engine/config';
+import { useStore } from '@/store';
 import { dayColor, Font, Space, usePalette } from '@/theme';
 
 const DAY_TYPES: DayType[] = ['upper', 'lower', 'full', 'mobility', 'rest'];
-const BELLS: Record<WeightUnit, number[]> = {
-  kg: [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 40, 48],
-  lb: [10, 15, 20, 25, 30, 35, 40, 45, 50, 53, 60, 70, 80, 90, 106],
-};
 // Monday-first display order (index into Rotation, 0 = Sunday)
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -33,11 +31,15 @@ export default function Settings() {
     update({ rotation: r });
   };
 
+  const owned = settings.bells[settings.unit];
   const toggleBell = (b: number) => {
-    const has = settings.bells.includes(b);
-    const bells = has ? settings.bells.filter((x) => x !== b) : [...settings.bells, b].sort((a, c) => a - c);
-    if (bells.length) update({ bells });
+    const has = owned.includes(b);
+    const list = has ? owned.filter((x) => x !== b) : [...owned, b].sort((a, c) => a - c);
+    if (list.length) update({ bells: { ...settings.bells, [settings.unit]: list } });
   };
+
+  const bwShown = settings.bodyweight ? Math.round(convert(settings.bodyweight.value, settings.bodyweight.unit, settings.unit)) : null;
+  const setBodyweight = (value: number) => update({ bodyweight: { value: Math.max(30, value), unit: settings.unit } });
 
   const setReminder = async (patch: Partial<typeof settings.reminder>) => {
     const reminder = { ...settings.reminder, ...patch };
@@ -53,10 +55,7 @@ export default function Settings() {
     }
   };
 
-  const changeUnit = (unit: WeightUnit) => {
-    if (unit === settings.unit) return;
-    update({ unit, bells: unit === 'kg' ? [12, 16, 20, 24] : [25, 35, 45, 53] });
-  };
+  const changeUnit = (unit: WeightUnit) => update({ unit });
 
   return (
     <Screen>
@@ -122,9 +121,23 @@ export default function Settings() {
         <T variant="muted">The bells you own. Used for quick logging.</T>
         <Row style={{ flexWrap: 'wrap' }} gap={6}>
           {BELLS[settings.unit].map((b) => (
-            <Chip key={b} label={`${b}`} selected={settings.bells.includes(b)} onPress={() => toggleBell(b)} />
+            <Chip key={b} label={`${b}`} selected={owned.includes(b)} onPress={() => toggleBell(b)} />
           ))}
         </Row>
+        <Divider />
+        <T variant="label">Bodyweight</T>
+        <T variant="muted">Used to show bodyweight movements as a % of your bodyweight. Stays on this phone.</T>
+        {bwShown === null ? (
+          <Button title="Set bodyweight" kind="secondary" onPress={() => setBodyweight(settings.unit === 'kg' ? 80 : 175)} />
+        ) : (
+          <Row style={{ justifyContent: 'center', paddingVertical: Space.sm }} gap={Space.md}>
+            <Step label="−" onPress={() => setBodyweight(bwShown - 1)} />
+            <T style={{ fontFamily: Font.display, fontSize: 26, minWidth: 110, textAlign: 'center' }}>
+              {bwShown} {settings.unit}
+            </T>
+            <Step label="+" onPress={() => setBodyweight(bwShown + 1)} />
+          </Row>
+        )}
       </Card>
 
       <Card>

@@ -8,6 +8,7 @@ import { Button, Card, Chip, Row, Screen, T } from '@/components/ui';
 import { creedForDate } from '@/data/creeds';
 import { EXERCISE_BY_ID } from '@/data/exercises';
 import { DAY_LABEL } from '@/engine/types';
+import { convert, roundWeight } from '@/engine/config';
 import { lastWeight, useActive, useStore, type LogEntry } from '@/store';
 import { Font, Radius, Space, usePalette } from '@/theme';
 
@@ -40,14 +41,18 @@ function CompleteInner() {
 
   const hasAmrap = workout.blocks.some((b) => b.format === 'AMRAP');
 
+  const owned = settings.bells[settings.unit];
+  // Pre-fill from what was chosen on the setup screen (applyConfig put it on each exercise).
+  const initialWeight = (r: (typeof rows)[number]): number | undefined => {
+    if (r.load) return r.load.kind === 'bell' ? roundWeight(convert(r.load.value, r.load.unit, settings.unit)) : undefined;
+    return lastWeight(sessions, r.exerciseId) ?? owned[1] ?? owned[0];
+  };
   const [entries, setEntries] = useState<Record<string, LogEntry>>(() =>
     Object.fromEntries(
-      rows.map((r) => [
-        r.exerciseId,
-        { exerciseId: r.exerciseId, weight: lastWeight(sessions, r.exerciseId) ?? settings.bells[1] ?? settings.bells[0], reps: r.reps },
-      ]),
+      rows.map((r) => [r.exerciseId, { exerciseId: r.exerciseId, weight: initialWeight(r), unit: settings.unit, reps: r.reps }]),
     ),
   );
+  const chipsFor = (w?: number) => (w !== undefined && !owned.includes(w) ? [...owned, w].sort((a, b) => a - b) : owned);
   const [amrapRounds, setAmrapRounds] = useState(0);
   const [note, setNote] = useState('');
 
@@ -116,7 +121,7 @@ function CompleteInner() {
             </Row>
             <Row style={{ flexWrap: 'wrap' }} gap={6}>
               <Chip label="BW" selected={e.weight === undefined} onPress={() => set(r.exerciseId, { weight: undefined })} />
-              {settings.bells.map((b) => (
+              {chipsFor(e.weight).map((b) => (
                 <Chip key={b} label={`${b} ${settings.unit}`} selected={e.weight === b} onPress={() => set(r.exerciseId, { weight: b })} />
               ))}
             </Row>

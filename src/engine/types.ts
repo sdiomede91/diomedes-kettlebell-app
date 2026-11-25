@@ -1,5 +1,7 @@
 import type { Focus, Level } from '@/data/exercises';
 
+import type { Load } from './config';
+
 export type DayType = 'upper' | 'lower' | 'full' | 'mobility' | 'rest';
 export type TrainingDayType = Exclude<DayType, 'rest'>;
 /** Index 0 = Sunday … 6 = Saturday (matches Date#getDay). */
@@ -12,6 +14,8 @@ export type BlockExercise = {
   exerciseId: string;
   /** Rep target, e.g. "8", "5/side", "30s". Undefined = work for the whole interval. */
   reps?: string;
+  /** Load chosen on the setup screen (set by applyConfig). */
+  load?: Load;
 };
 
 export type Block = {
@@ -32,6 +36,8 @@ export type Workout = {
   dateKey: string;
   dayType: TrainingDayType;
   title: string;
+  /** Greek-themed name, e.g. "Argos Ladder". */
+  name: string;
   blocks: Block[];
   totalSec: number;
   seed: number;

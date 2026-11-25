@@ -1,5 +1,6 @@
 import { EXERCISES, LEVEL_RANK, type Exercise, type Focus, type Level, type Pattern } from '@/data/exercises';
 
+import { workoutName } from './names';
 import { hashString, mulberry32 } from './random';
 import { timelineDuration, buildTimeline } from './timer';
 import {
@@ -178,6 +179,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
     dateKey,
     dayType,
     title: DAY_LABEL[dayType],
+    name: workoutName(seed, blocks),
     blocks,
     totalSec: 0,
     seed,

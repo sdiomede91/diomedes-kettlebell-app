@@ -19,6 +19,8 @@ export type Exercise = {
   level: Level;
   /** Performed one side at a time — the timer splits work across sides. */
   unilateral: boolean;
+  /** Done without a bell by default — load shows as a % of bodyweight. */
+  bodyweight?: boolean;
   summary: string;
   cues: string[];
   mistakes: string[];
@@ -278,6 +280,7 @@ export const EXERCISES: Exercise[] = [
     pattern: 'press',
     level: 'base',
     unilateral: false,
+    bodyweight: true,
     summary: 'Hands on the handles for a deeper push-up and a stronger grip.',
     cues: ['Body is one plank', 'Chest between the hands', 'Elbows back, not out'],
     mistakes: ['Hips sagging', 'Half reps'],

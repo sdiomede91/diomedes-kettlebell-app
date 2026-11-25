@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { ExerciseVideo } from '@/components/exercise-video';
 import { Card, Row, Screen, T } from '@/components/ui';
 import { EXERCISE_BY_ID, PATTERN_LABEL } from '@/data/exercises';
+import { convert, roundWeight } from '@/engine/config';
 import { useStore } from '@/store';
 import { Radius, Space, usePalette } from '@/theme';
 
@@ -23,7 +24,7 @@ export default function ExerciseDetail() {
   }
 
   const history = sessions
-    .flatMap((s) => s.entries.filter((x) => x.exerciseId === e.id && x.weight !== undefined).map((x) => ({ date: s.dateKey, weight: x.weight!, reps: x.reps })))
+    .flatMap((s) => s.entries.filter((x) => x.exerciseId === e.id && x.weight !== undefined).map((x) => ({ date: s.dateKey, weight: roundWeight(convert(x.weight!, x.unit ?? unit, unit)), reps: x.reps })))
     .slice(0, 8);
 
   const tags = [PATTERN_LABEL[e.pattern], ...e.focus.map((f) => f[0].toUpperCase() + f.slice(1)), e.level, e.unilateral ? 'Single side' : 'Bilateral'];
